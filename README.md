@@ -8,6 +8,6 @@ optional arguments:
   -display            show the contact map by pickle
   -o O                store the contact map using pickle
   
-  Usage：
+# Usage：
   python PCMG.py 
   

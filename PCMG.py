@@ -29,18 +29,18 @@ def calc_gap(chain,seq):
             gap = i - seqs + 1
             break
     else:
-        raise Exception("inconsistent between pdb files and sequence files")
+        raise Exception('inconsistent between pdb files and sequence files')
     return gap
 
 def clear_pdb(infile,outfile):
     PDBtxt = ''
     with open(infile, 'rU') as f: 
         for line in f.read().splitlines():
-            if line.startswith("END"):
-                line = line.replace("ENDMDL", "END   ")
+            if line.startswith('END'):
+                line = line.replace('ENDMDL', 'END   ')
                 PDBtxt += line + '\n'
                 break
-            if line.startswith("ATOM  ") or line.startswith("TER"):
+            if line.startswith('ATOM  ') or line.startswith('TER'):
                 PDBtxt += line + '\n'
     with open(outfile, 'w') as f:
         f.write(PDBtxt)
@@ -58,20 +58,21 @@ def calc_residue_dist(residue_one, residue_two):
     diff_vector = residue_one[c1].coord - residue_two[c2].coord
     return np.sqrt(np.sum(diff_vector * diff_vector))
 
-def generate_contact_map(pdb_path,seq_path):
+def generate_contact_map(pdb_path,seq_path,id):
     if not os.path.exists(pdb_path) :
-        raise Exception("No such pdb file :{0}".format(pdb_path))
+        raise Exception('No such pdb file :{0}'.format(pdb_path))
     elif not os.path.exists(seq_path):
-        raise Exception("No such sequence file :{0}".format(seq_path))
+        raise Exception('No such sequence file :{0}'.format(seq_path))
     _,pdb_fname=os.path.split(pdb_path)   
     _,pdb_name=os.path.splitext(pdb_path)   
+    
     with open(seq_path) as f:
         contents = f.read()
     sequence=''.join(contents.split('\n')[1:-1])
     length=len(sequence)
     
     clear_pdb(pdb_path,'cache/'+pdb_fname)
-    chain = Bio.PDB.PDBParser().get_structure(pdb_name,'cache/'+pdb_fname)[0]['A'] #
+    chain = Bio.PDB.PDBParser().get_structure(pdb_name,'cache/'+pdb_fname)[0][id]
     gap=calc_gap(chain,sequence)
     contact_map = np.zeros((length, length))
     for row in range(length):
@@ -79,33 +80,54 @@ def generate_contact_map(pdb_path,seq_path):
             if chain.has_id((' ', row + 1-gap, ' ')) and chain.has_id((' ', col + 1-gap, ' ')):
                 contact_map[row, col] = calc_residue_dist(chain.__getitem__(row + 1-gap), chain.__getitem__(col + 1-gap))
             else:
-                contact_map[row, col] = -1
-    return contact_map
-    
+                contact_map[row, col] = np.nan
+    with warnings.catch_warnings(): 
+        warnings.simplefilter("ignore")    
+        return contact_map<8
+        
+def download(pdb_id,chain_id):
+    print('downloading pdb and sequence file...')
+    pdb = requests.get('https://files.rcsb.org/download/'+pdb_id+ '.pdb')
+    if pdb.status_code == 404:
+        Exception('pdb id:{0} not exists in rcsb.org'.format(pdb_id))
+    with open("cache/" +pdb_id+ '.pdb', 'wb') as f:
+        print('download pdb file finished')
+        f.write(pdb.content)
+    sequence=requests.get('https://www.rcsb.org/pdb/download/downloadFile.do?fileFormat=fastachain&compression=NO&structureId={0}&chainId={1}'.format(pdb_id,chain_id))
+    if sequence.status_code == 404:  
+        Exception('{0} sequence or chain {1} not exists in rcsb.org'.format(pdb_id,chain_id))    
+    with open('cache/'+pdb_id+'.fasta','wb') as f:
+        print('download sequence file finished')
+        f.write(sequence.content) 
+        
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    # parser.add_argument("-pdb_id")
-    parser.add_argument("-pdb_path")
-    parser.add_argument("-seq_path")
-    parser.add_argument("-display", action="store_true")
-    parser.add_argument("-o")
+    parser.add_argument('-pdb_id',help='pdb id to download pdb file and sequence file')
+    parser.add_argument('-pdb_path',help='pdb file used to caculate distance between residues')
+    parser.add_argument('-seq_path',help='sequence file used to renumber residues consecutively')
+    parser.add_argument('-chain_id',help='chain to generate',default='A')
+    parser.add_argument('-display', action='store_true',help='show the contact map by pickle')
+    parser.add_argument('-o',help='store the contact map using pickle')
     
     args = parser.parse_args()
-
+    if args.chain_id!=None:
+        warnings.warn('not given chain id ,default is chain A',Warning)
     if args.pdb_path and args.seq_path:
-        cm=generate_contact_map(args.pdb_path,args.seq_path) #E:\s2\sequence\1B0BA.seq
-        
+        print('generating contact map based on local file...')
+        cm=generate_contact_map(args.pdb_path,args.seq_path,args.chain_id) #E:\s2\sequence\1B0BA.seq
+    elif args.pdb_id:
+        print('generating contact map of given pdb id...')       
+        download(args.pdb_id,args.chain_id)
+        cm=generate_contact_map("cache/"+args.pdb_id+'.pdb',"cache/"+args.pdb_id+'.fasta',args.chain_id)       
+    else:
+        raise Exception('your need to give a pdb id or specify local pdb & sequence file path')
     if args.display:
         import matplotlib.pyplot as plt
         plt.imshow(cm,cmap='gray_r')
         plt.show()
     if args.o:
-        if os.path.split(args.o)[0]!='' and  not os.path.exists(os.path.split(args.o)[0]):
+        if os.path.split(args.o)[0]!='' and not os.path.exists(os.path.split(args.o)[0]):
             raise Exception('path don\'t exists')
         import pickle
         with open(args.o,'wb') as f:
             pickle.dump(cm,f)
-        
-
-
-    pass

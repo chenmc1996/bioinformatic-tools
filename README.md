@@ -2,8 +2,8 @@
 A python based, easy to use contact map generator.  Comments and suggestions are welcome.
 
 # Usage：
-  python PCMG.py -pdb_id 1B0B -display <br>
-  or python PCMG.py -pdb_path c:\1B0B.pdb -seq_path c:\1B0B.fastav -o c:\1B0B.cm <br>
+  `python PCMG.py -pdb_id 1B0B -display` <br>
+  `python PCMG.py -pdb_path c:\1B0B.pdb -seq_path c:\1B0B.fastav -o c:\1B0B.cm` <br>
 ## optional arguments:
   
   -pdb_id     pdb id to download pdb file and sequence file <br>

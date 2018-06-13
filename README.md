@@ -1,13 +1,25 @@
 # protein-contact-map-generator
 A python based, easy to use contact map generator.  Comments and suggestions are welcome.
 
-optional arguments:
-  -h, --help          show this help message and exit
-  -pdb_path PDB_PATH  pdb file use to caculate distance between residues
-  -seq_path SEQ_PATH  sequence file use to renumber residues consecutively
-  -display            show the contact map by pickle
-  -o O                store the contact map using pickle
-  
 # Usage：
-  python PCMG.py 
+  python PCMG.py -pdb_id 1B0B -display
+  or python PCMG.py -pdb_path c:\1B0B.pdb -seq_path c:\1B0B.fastav -o c:\1B0B.cm
+## optional arguments:
+  
+  -pdb_id     pdb id to download pdb file and sequence file 
+  
+  -pdb_path   pdb file used to caculate distance between residues
+  
+  -seq_path   sequence file used to renumber residues consecutively
+  
+  -chain_id   chain to generate
+  
+  -display    show the contact map by pickle
+  
+  -o          store the contact map using pickle
+  
+  
+
+  
+
   

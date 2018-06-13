@@ -7,7 +7,7 @@
   `python PCMG.py -pdb_path c:\1B0B.pdb -seq_path c:\1B0B.fastav -o c:\1B0B.cm` <br>
 ## optional arguments:
   <pre>
-  -pdb_id     pdb id to download pdb file and sequence file <br>
+  -pdb_id     according the id to generate contactmap <br>
   -pdb_path   pdb file used to caculate distance between residues <br>
   -seq_path   sequence file used to renumber residues consecutively <br>
   -chain_id   chain to generate <br>

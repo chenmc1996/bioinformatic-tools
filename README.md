@@ -11,7 +11,7 @@
   -pdb_path   pdb file used to caculate distance between residues <br>
   -seq_path   sequence file used to renumber residues consecutively <br>
   -chain_id   chain to generate <br>
-  -display    show the contact map by pickle <br>
+  -display    show the contact map by matplot <br>
   -o          store the contact map using pickle <br>
   </pre>
    

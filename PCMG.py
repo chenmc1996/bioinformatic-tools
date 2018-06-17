@@ -108,7 +108,8 @@ if __name__=='__main__':
     parser.add_argument('-chain_id',help='chain to generate',default='A')
     parser.add_argument('-display', action='store_true',help='show the contact map by pickle')
     parser.add_argument('-o',help='store the contact map using pickle')
-    
+    if !os.path.exists('cache'):
+		os.mkdir('cache')
     args = parser.parse_args()
     if args.chain_id!=None:
         warnings.warn('not given chain id ,default is chain A',Warning)

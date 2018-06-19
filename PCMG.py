@@ -18,7 +18,10 @@ def calc_gap(chain,seq):
         while len(pdb_seq) != i.get_id()[1] - seqs:
             pdb_seq.append('X')
         pdb_seq.append(DIC[i.get_resname()])
-
+    for i in pdb_seq:
+        print(i,end='')
+    print()
+    print(seq)
     for i, j in enumerate(seq):
         match = True
         for k, l in enumerate(pdb_seq):
@@ -59,6 +62,7 @@ def calc_residue_dist(residue_one, residue_two):
     return np.sqrt(np.sum(diff_vector * diff_vector))
 
 def generate_contact_map(pdb_path,seq_path,id):
+    
     if not os.path.exists(pdb_path) :
         raise Exception('No such pdb file :{0}'.format(pdb_path))
     elif not os.path.exists(seq_path):
@@ -71,8 +75,12 @@ def generate_contact_map(pdb_path,seq_path,id):
     sequence=''.join(contents.split('\n')[1:-1])
     length=len(sequence)
     
+
     clear_pdb(pdb_path,'cache/'+pdb_fname)
-    chain = Bio.PDB.PDBParser().get_structure(pdb_name,'cache/'+pdb_fname)[0][id]
+    if id==None:
+        chain = Bio.PDB.PDBParser().get_structure(pdb_name,'cache/'+pdb_fname)[0].child_list[0]
+    else:
+        chain = Bio.PDB.PDBParser().get_structure(pdb_name,'cache/'+pdb_fname)[0][id]
     gap=calc_gap(chain,sequence)
     contact_map = np.zeros((length, length))
     for row in range(length):
@@ -105,14 +113,14 @@ if __name__=='__main__':
     parser.add_argument('-pdb_id',help='pdb id to download pdb file and sequence file')
     parser.add_argument('-pdb_path',help='pdb file used to caculate distance between residues')
     parser.add_argument('-seq_path',help='sequence file used to renumber residues consecutively')
-    parser.add_argument('-chain_id',help='chain to generate',default='A')
+    parser.add_argument('-chain_id',help='chain to generate',default=None)
     parser.add_argument('-display', action='store_true',help='show the contact map by pickle')
     parser.add_argument('-o',help='store the contact map using pickle')
-    if !os.path.exists('cache'):
-		os.mkdir('cache')
+    if not os.path.exists('cache'):
+        os.mkdir('cache')
     args = parser.parse_args()
-    if args.chain_id!=None:
-        warnings.warn('not given chain id ,default is chain A',Warning)
+    if args.chain_id==None:
+        warnings.warn('not given chain id ,default is the first chain',Warning)
     if args.pdb_path and args.seq_path:
         print('generating contact map based on local file...')
         cm=generate_contact_map(args.pdb_path,args.seq_path,args.chain_id) #E:\s2\sequence\1B0BA.seq

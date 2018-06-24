@@ -1,6 +1,5 @@
 # protein-contact-map-generator
   A python based, easy to use contact map generator. <br>
-  Comments and suggestions are welcome.
 
 # Usage：
   `python PCMG.py -pdb_id 1B0B -display` <br>

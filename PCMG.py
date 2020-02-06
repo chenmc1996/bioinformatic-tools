@@ -24,7 +24,6 @@ def clear_pdb(infile,outfile):
     with open(outfile, 'w') as f:
         f.write(PDBtxt)
 
-
 def calc_residue_dist(residue_one, residue_two):
     c1 = 'CB' if residue_one.get_resname() != 'GLY' else 'CA'
     c2 = 'CB' if residue_two.get_resname() != 'GLY' else 'CA'
@@ -50,7 +49,6 @@ def generate_contact_map(pdb_path,seq_path,id):
         contents = f.read()
     sequence=''.join(contents.split('\n')[1:-1])
     length=len(sequence)
-    
 
     clear_pdb(pdb_path,'cache/'+pdb_fname)
 
@@ -131,4 +129,3 @@ if __name__=='__main__':
         import pickle
         with open(args.o,'wb') as f:
             pickle.dump(cm,f)
-

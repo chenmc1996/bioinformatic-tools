@@ -10,30 +10,6 @@ import argparse
 DIC = {'ALA': 'A', 'LEU': 'L', 'ARG': 'R', 'LYS': 'K', 'ASN': 'N', 'MET': 'M', 'ASP': 'D', 'PHE': 'F', 'CYS': 'C',
        'PRO': 'P', 'GLN': 'Q', 'SER': 'S', 'GLU': 'E', 'THR': 'T', 'GLY': 'G', 'TRP': 'W', 'HIS': 'H', 'TYR': 'Y',
        'ILE': 'I', 'VAL': 'V','UNK':'X'}
-def calc_gap(chain,seq):
-    pdb_seq = []
-    seqs = chain.child_list[0].get_id()[1]
-    gap = 0
-    for i in chain:
-        while len(pdb_seq) != i.get_id()[1] - seqs:
-            pdb_seq.append('X')
-        pdb_seq.append(DIC[i.get_resname()])
-    for i in pdb_seq:
-        print(i,end='')
-    print()
-    print(seq)
-    for i, j in enumerate(seq):
-        match = True
-        for k, l in enumerate(pdb_seq):
-            if l != 'X' and seq[k + i] != 'X' and seq[k + i] != l:
-                match = False
-                break
-        if match:
-            gap = i - seqs + 1
-            break
-    else:
-        raise Exception('inconsistent between pdb files and sequence files')
-    return gap
 
 def clear_pdb(infile,outfile):
     PDBtxt = ''
@@ -77,21 +53,30 @@ def generate_contact_map(pdb_path,seq_path,id):
     
 
     clear_pdb(pdb_path,'cache/'+pdb_fname)
+
     if id==None:
         chain = Bio.PDB.PDBParser().get_structure(pdb_name,'cache/'+pdb_fname)[0].child_list[0]
     else:
         chain = Bio.PDB.PDBParser().get_structure(pdb_name,'cache/'+pdb_fname)[0][id]
-    gap=calc_gap(chain,sequence)
-    contact_map = np.zeros((length, length))
+
+    gap= chain.child_list[0].get_id()[1]
+    #print(gap)
+    
+    if gap is None:
+        return
+    contact_map = np.zeros((length, length),dtype=np.float32)   
+    print(length)
     for row in range(length):
-        for col in range(length):
-            if chain.has_id((' ', row + 1-gap, ' ')) and chain.has_id((' ', col + 1-gap, ' ')):
-                contact_map[row, col] = calc_residue_dist(chain.__getitem__(row + 1-gap), chain.__getitem__(col + 1-gap))
+        for col in range(row,length):
+            if chain.has_id((' ', row +gap, ' ')) and chain.has_id((' ', col +gap, ' ')):
+                contact_map[row, col] = calc_residue_dist(chain.__getitem__(row +gap), chain.__getitem__(col +gap))
+                contact_map[col, row] = calc_residue_dist(chain.__getitem__(row +gap), chain.__getitem__(col +gap))
             else:
-                contact_map[row, col] = np.nan
+                contact_map[row, col] = -1
+                contact_map[col, row] = -1
     with warnings.catch_warnings(): 
         warnings.simplefilter("ignore")    
-        return contact_map<8
+    return contact_map
         
 def download(pdb_id,chain_id):
     print('downloading pdb and sequence file...')
@@ -101,7 +86,13 @@ def download(pdb_id,chain_id):
     with open("cache/" +pdb_id+ '.pdb', 'wb') as f:
         print('download pdb file finished')
         f.write(pdb.content)
-    sequence=requests.get('https://www.rcsb.org/pdb/download/downloadFile.do?fileFormat=fastachain&compression=NO&structureId={0}&chainId={1}'.format(pdb_id,chain_id))
+
+    if chain_id==None:
+        req=f'https://www.rcsb.org/pdb/download/downloadFastaFiles.do?structureIdList={pdb_id}&compressionType=uncompressed'
+    else:
+        req='https://www.rcsb.org/pdb/download/downloadFile.do?fileFormat=fastachain&compression=NO&structureId={0}&chainId={1}'.format(pdb_id,chain_id)
+    print(req)
+    sequence=requests.get(req)
     if sequence.status_code == 404:  
         Exception('{0} sequence or chain {1} not exists in rcsb.org'.format(pdb_id,chain_id))    
     with open('cache/'+pdb_id+'.fasta','wb') as f:
@@ -140,3 +131,4 @@ if __name__=='__main__':
         import pickle
         with open(args.o,'wb') as f:
             pickle.dump(cm,f)
+

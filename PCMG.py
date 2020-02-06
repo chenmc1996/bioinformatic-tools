@@ -10,6 +10,7 @@ import argparse
 DIC = {'ALA': 'A', 'LEU': 'L', 'ARG': 'R', 'LYS': 'K', 'ASN': 'N', 'MET': 'M', 'ASP': 'D', 'PHE': 'F', 'CYS': 'C',
        'PRO': 'P', 'GLN': 'Q', 'SER': 'S', 'GLU': 'E', 'THR': 'T', 'GLY': 'G', 'TRP': 'W', 'HIS': 'H', 'TYR': 'Y',
        'ILE': 'I', 'VAL': 'V','UNK':'X'}
+
 # delete irrelevant lines in PDB file
 def clear_pdb(infile,outfile):
     PDBtxt = ''

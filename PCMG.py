@@ -10,7 +10,7 @@ import argparse
 DIC = {'ALA': 'A', 'LEU': 'L', 'ARG': 'R', 'LYS': 'K', 'ASN': 'N', 'MET': 'M', 'ASP': 'D', 'PHE': 'F', 'CYS': 'C',
        'PRO': 'P', 'GLN': 'Q', 'SER': 'S', 'GLU': 'E', 'THR': 'T', 'GLY': 'G', 'TRP': 'W', 'HIS': 'H', 'TYR': 'Y',
        'ILE': 'I', 'VAL': 'V','UNK':'X'}
-
+# delete irrelevant lines in PDB file
 def clear_pdb(infile,outfile):
     PDBtxt = ''
     with open(infile, 'rU') as f: 
@@ -24,6 +24,7 @@ def clear_pdb(infile,outfile):
     with open(outfile, 'w') as f:
         f.write(PDBtxt)
 
+# calculate the distance between residues.
 def calc_residue_dist(residue_one, residue_two):
     c1 = 'CB' if residue_one.get_resname() != 'GLY' else 'CA'
     c2 = 'CB' if residue_two.get_resname() != 'GLY' else 'CA'
@@ -36,6 +37,7 @@ def calc_residue_dist(residue_one, residue_two):
     diff_vector = residue_one[c1].coord - residue_two[c2].coord
     return np.sqrt(np.sum(diff_vector * diff_vector))
 
+# generate contact map using given sequence and structure. -1 means missing C atom.
 def generate_contact_map(pdb_path,seq_path,id):
     
     if not os.path.exists(pdb_path) :
@@ -75,7 +77,8 @@ def generate_contact_map(pdb_path,seq_path,id):
     with warnings.catch_warnings(): 
         warnings.simplefilter("ignore")    
     return contact_map
-        
+   
+# download FASTA sequence and PDB structure file according to PDB ID
 def download(pdb_id,chain_id):
     print('downloading pdb and sequence file...')
     pdb = requests.get('https://files.rcsb.org/download/'+pdb_id+ '.pdb')
